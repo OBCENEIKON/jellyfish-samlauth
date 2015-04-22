@@ -2,28 +2,17 @@ Rails.application.config.middleware.use OmniAuth::Builder do
   provider :samlauth,
            # SP Settings
            # ==================================================================
-           # Required
-           # ------------------------------------------------------------------
+           # Defaults to http(s)://<hostname>/<path_prefix>/:provider/metadata.xml if not entered
            issuer: ENV['SAML_ISSUER'],
            certificate: ENV['SAML_CERTIFICATE'] || nil,
+           # Defaults to http(s)://<hostname>/<path_prefix>/:provider/callback?<query_string> if not entered
            assertion_consumer_service_url: ENV['SAML_ASSERTION_CONSUMER_SERVICE_URL'],
+           # Defaults to urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST if not entered
            assertion_consumer_service_binding: ENV['SAML_ASSERTION_CONSUMER_SERVICE__BINDING'],
            compress_request: ENV['SAML_COMPRESS_REQUEST'] ? ENV['SAML_COMPRESS_REQUEST'].to_bool : true,
            compress_response: ENV['SAML_COMPRESS_RESPONSE'] ? ENV['SAML_COMPRESS_RESPONSE'].to_bool : true,
            double_quote_xml_attribute_values: ENV['SAML_DOUBLE_QUOTE_XML_ATTRIBUTE_VALUES'] ? ENV['SAML_DOUBLE_QUOTE_XML_ATTRIBUTE_VALUES'].to_bool : false,
            passive: ENV['SAML_PASSIVE'] ? ENV['SAML_PASSIVE'].to_bool : false,
-
-           security: {
-             authn_requests_signed: ENV['SAML_AUTHN_REQUESTS_SIGNED'] ? ENV['SAML_AUTHN_REQUESTS_SIGNED'].to_bool : false,
-             logout_requests_signed: ENV['SAML_LOGOUT_REQUESTS_SIGNED'] ? ENV['SAML_LOGOUT_REQUESTS_SIGNED'].to_bool : false,
-             logout_responses_signed: ENV['SAML_LOGOUT_RESPONSES_SIGNED'] ? ENV['SAML_LOGOUT_RESPONSES_SIGNED'].to_bool : false,
-             embed_sign: ENV['SAML_EMBED_SIGNED'] ? ENV['SAML_EMBED_SIGNED'].to_bool : false,
-             digest_method: ENV['SAML_DIGEST_METHOD'],
-             signature_method: ENV['SAML_SIGNATURE_METHOD']
-           },
-
-           # Optional
-           # ------------------------------------------------------------------
            # If the IdP provides your XML data, specify the URL that it's located at
            idp_metadata_url: ENV['SAML_IDP_METADATA_URL'] || nil,
            sp_name_qualifier: ENV['SAML_SP_NAME_QUALIFIER'] || nil,
@@ -38,6 +27,17 @@ Rails.application.config.middleware.use OmniAuth::Builder do
            authn_context: ENV['SAML_AUTHN_CONTEXT'] || nil,
            authn_context_decl_ref: ENV['SAML_AUTHN_CONTEXT_DECL_REF'] || nil,
            authn_context_comparison: ENV['SAML_AUTHN_CONTEXT_COMPARISON'] || nil,
+
+           security: {
+             authn_requests_signed: ENV['SAML_AUTHN_REQUESTS_SIGNED'] ? ENV['SAML_AUTHN_REQUESTS_SIGNED'].to_bool : false,
+             logout_requests_signed: ENV['SAML_LOGOUT_REQUESTS_SIGNED'] ? ENV['SAML_LOGOUT_REQUESTS_SIGNED'].to_bool : false,
+             logout_responses_signed: ENV['SAML_LOGOUT_RESPONSES_SIGNED'] ? ENV['SAML_LOGOUT_RESPONSES_SIGNED'].to_bool : false,
+             embed_sign: ENV['SAML_EMBED_SIGNED'] ? ENV['SAML_EMBED_SIGNED'].to_bool : false,
+             # Defaults to XMLSecurity::Document::SHA1 if not entered
+             digest_method: ENV['SAML_DIGEST_METHOD'],
+             # Defaults to XMLSecurity::Document::SHA1 if not entered
+             signature_method: ENV['SAML_SIGNATURE_METHOD']
+           },
 
            attributes_index: ENV['SAML_ATTRIBUTES_INDEX'] || nil,
            attribute_consuming_service: {
@@ -55,22 +55,27 @@ Rails.application.config.middleware.use OmniAuth::Builder do
            # ==================================================================
            # Required
            # ------------------------------------------------------------------
+           # Required unless idp_metadata_url is set
            idp_sso_target_url: ENV['SAML_IDP_SSO_TARGET_URL'] || nil,
 
            # Either idp_cert, idp_cert_fingerprint or idp_cert_fingerprint_validator must be present
            idp_cert: ENV['SAML_IDP_CERT'] || nil,
            idp_cert_fingerprint: ENV['SAML_IDP_CERT_FINGERPRINT'] || nil,
+           # Defaults to -> (fingerprint) { fingerprint } if not entered
            idp_cert_fingerprint_validator: ENV['SAML_IDP_CERT_FINGERPRINT_VALIDATOR'],
 
            # Optional
            # ------------------------------------------------------------------
            idp_slo_target_url: ENV['SAML_IDP_SLO_TARGET_URL'] || nil,
+           # Defaults to { original_request_param: :mapped_idp_param } if not entered
            idp_sso_target_url_runtime_params: ENV['SAML_IDP_SSO_TARGET_URL_RUNTIME_PARAMS'],
            idp_entity_id: ENV['SAML_IDP_ENTITY_ID'] || nil,
+           # Defaults to -> { XMLSecurity::Document::SHA1 } if not entered
            idp_cert_fingerprint_algorithm: ENV['SAML_IDP_CERT_FINGERPRINT_ALGORITHM'],
            single_logout_service_url: ENV['SAML_SINGLE_LOGOUT_SERVICE_URL'] || nil,
            single_logout_service_binding: ENV['SAML_LOGOUT_SERVICE_BINDING'] || nil,
 
+           # Sets the default values
            setup: SamlSetup,
 
            # This needs to be here for the devise scope
